@@ -83,23 +83,23 @@ fn is_game_possible(game: &Game) -> bool {
 }
 
 fn get_power_of_minimum_possible_cubes(game: &Game) -> i32 {
-    let mut minimum_red = std::i32::MAX;
-    let mut minimum_green = std::i32::MAX;
-    let mut minimum_blue = std::i32::MAX;
+    let mut minimum_red = 0;
+    let mut minimum_green = 0;
+    let mut minimum_blue = 0;
     
     for draw in &game.draws {
         let red_drawn = draw.get("red").unwrap_or(&0);
-        if  red_drawn < &minimum_red {
+        if  red_drawn > &minimum_red {
             minimum_red = *red_drawn;
         }
 
         let green_drawn = draw.get("green").unwrap_or(&0);
-        if  green_drawn < &minimum_green {
+        if  green_drawn > &minimum_green {
             minimum_green = *green_drawn;
         }
 
         let blue_drawn = draw.get("blue").unwrap_or(&0);
-        if  blue_drawn < &minimum_blue {
+        if  blue_drawn > &minimum_blue {
             minimum_blue = *blue_drawn;
         }
     }
