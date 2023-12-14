@@ -1,4 +1,9 @@
-use std::{collections::HashMap, io::{BufReader, BufRead}, fs::File, vec};
+use std::{
+    collections::HashMap,
+    fs::File,
+    io::{BufRead, BufReader},
+    vec,
+};
 
 type ColorCount = HashMap<String, i32>;
 type Draws = Vec<ColorCount>;
@@ -56,13 +61,13 @@ fn is_game_possible(game: &Game) -> bool {
     let red_limit = 12;
     let green_limit = 13;
     let blue_limit = 14;
-    
+
     for draw in &game.draws {
         let red_drawn = draw.get("red").unwrap_or(&0);
         let green_drawn = draw.get("green").unwrap_or(&0);
         let blue_drawn = draw.get("blue").unwrap_or(&0);
 
-        if  red_drawn > &red_limit {
+        if red_drawn > &red_limit {
             return false;
         }
 
@@ -86,26 +91,26 @@ fn get_power_of_minimum_possible_cubes(game: &Game) -> i32 {
     let mut minimum_red = 0;
     let mut minimum_green = 0;
     let mut minimum_blue = 0;
-    
+
     for draw in &game.draws {
         let red_drawn = draw.get("red").unwrap_or(&0);
-        if  red_drawn > &minimum_red {
+        if red_drawn > &minimum_red {
             minimum_red = *red_drawn;
         }
 
         let green_drawn = draw.get("green").unwrap_or(&0);
-        if  green_drawn > &minimum_green {
+        if green_drawn > &minimum_green {
             minimum_green = *green_drawn;
         }
 
         let blue_drawn = draw.get("blue").unwrap_or(&0);
-        if  blue_drawn > &minimum_blue {
+        if blue_drawn > &minimum_blue {
             minimum_blue = *blue_drawn;
         }
     }
 
     let power = minimum_red * minimum_green * minimum_blue;
-    
+
     println!("Minimum Red: {}", minimum_red);
     println!("Minimum Green: {}", minimum_green);
     println!("Minimum Blue: {}", minimum_blue);
@@ -122,13 +127,13 @@ fn main() {
     let reader = BufReader::new(file);
 
     // reading all games from the file
-    for line in reader.lines(){
+    for line in reader.lines() {
         let line = line.expect("Problem reading line from the file");
         // match to ensure it is either parsed or throws an error
         match Game::parse(&line) {
             Ok(game) => {
                 all_games.push(game);
-            },
+            }
             Err(e) => {
                 eprintln!("Error parsing game: {}", e);
             }
