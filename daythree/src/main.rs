@@ -1,4 +1,4 @@
-use std::{fs::File, io::{self, BufReader, BufRead}, ops::Add};
+use std::{fs::File, io::{self, BufReader, BufRead}, ops::Add, collections::HashSet};
 
 const NEIGHBOR_OFFSETS: [(isize, isize); 8] = [
     (-1, -1), // Top Left
@@ -12,7 +12,7 @@ const NEIGHBOR_OFFSETS: [(isize, isize); 8] = [
 ];
 
 fn is_symbol(c: char) -> bool {
-    !c.is_alphanumeric() || c == '.'
+    !c.is_alphanumeric() && c != '.'
 }
 
 fn get_digit_neighbors(matrix: &Vec<Vec<char>>, row: usize, col: usize) -> Vec<(usize, usize)> {
@@ -33,65 +33,25 @@ fn get_digit_neighbors(matrix: &Vec<Vec<char>>, row: usize, col: usize) -> Vec<(
     digit_neighbors
 }
 
-// start at row,col, then move left until either end or non-digit is read, prepend to string
-// repeat for righthandside with append
-fn retrieve_numbers(matrix: &Vec<Vec<char>>, row: usize, col: usize) -> i32 {
+fn retrieve_numbers(matrix: &Vec<Vec<char>>, row: usize, col: usize) -> (i32, Vec<(usize, usize)>) {
     let mut number_as_string = String::new();
-    
-    // add the digit at the current index to the string
-    let current_entry = matrix[row][col];
-    if current_entry.is_digit(10) {
-        number_as_string.push(current_entry);
-        println!("Starting with current entry: {} at index {}.{}", number_as_string, row, col); // Debug print
-    }
+    let mut indices = Vec::new();
 
-    // Go left from the initial position and prepend digits to the string
     let mut current_col = col;
-    while current_col > 0 {
-        // Move to the left
-        current_col -= 1; 
-        let entry = matrix[row][current_col];
-        // println!("Checking left: {}", entry); // Debug print
-        
-        if entry.is_digit(10) {
-            number_as_string = entry.to_string() + &number_as_string;
-            // println!("Current number (left): {}", number_as_string); // Debug print
-        } else {
-            // we have reached the left end of the string
-            break;
-        }
+    // Move left to find the start of the number
+    while current_col > 0 && matrix[row][current_col - 1].is_digit(10) {
+        current_col -= 1;
     }
 
-    // Reset current_col to the initial position 
-    // in order to repeat the whole thing for the right side of the string
-    current_col = col;
-
-    // Go right from the initial position and append digits to the string
-    while current_col + 1 < matrix[row].len() {
-        // Move to the right
+    // Now collect the entire number and its indices
+    while current_col < matrix[row].len() && matrix[row][current_col].is_digit(10) {
+        number_as_string.push(matrix[row][current_col]);
+        indices.push((row, current_col));
         current_col += 1;
-        let entry = matrix[row][current_col];
-        // println!("Checking right: {}", entry); // Debug print
-
-        if entry.is_digit(10) {
-            number_as_string.push(entry);
-        //  println!("Current number (right): {}", number_as_string); // Debug print
-        } else {
-            // we have reached the right end of the string
-            break;
-        }
     }
 
-    println!("Final number string: {}", number_as_string); // Debug print
-
-    // Parse the string to an integer
-    match number_as_string.parse::<i32>() {
-        Ok(num) => num,
-        Err(e) => {
-            println!("Error parsing number: {}", e); // Error message if parsing fails
-            0 // Return a default value in case of error
-        }
-    }
+    let num = number_as_string.parse::<i32>().unwrap_or(0);
+    (num, indices)
 }
 
 fn read_and_parse_schematics() -> Vec<Vec<char>> {
@@ -115,27 +75,26 @@ fn main() {
     let matrix: Vec<Vec<char>> = read_and_parse_schematics();
     let mut digit_neighbors = Vec::new();
     let mut sum = 0;
-
+    let mut processed_indices: HashSet<(usize, usize)> = HashSet::new();
+    
     for i in 0..matrix.len() {
         for j in 0..matrix[i].len() {
             let cell = matrix[i][j];
             if is_symbol(cell) {
-                println!("found asterisk at {}.{}", i, j);
+                // println!("found asterisk at {}.{}", i, j);
                 let mut neighbors = get_digit_neighbors(&matrix, i, j); 
                 digit_neighbors.append(&mut neighbors);
             }
         }
     }
 
-    print!("Digit indices surrounding: ");
-    for (row_index, col_index) in &digit_neighbors {
-        print!("({}, {}), ", row_index, col_index);
-    }
+    for (row_index, col_index) in digit_neighbors {
+        let (num, indices) = retrieve_numbers(&matrix, row_index, col_index);
 
-    println!();
-    for i in digit_neighbors {
-        // in our vector<usize,usize> 0 is the row and 1 is the col
-        sum += retrieve_numbers(&matrix, i.0, i.1);
+        if indices.iter().all(|index| processed_indices.insert(*index)) {
+            println!("added number {}", num);
+            sum += num;
+        }
     }
 
     println!("sum: {}", sum);
