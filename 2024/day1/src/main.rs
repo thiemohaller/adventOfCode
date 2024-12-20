@@ -81,7 +81,7 @@ fn part_two(path: &str) -> io::Result<i32> {
 }
 
 fn main() {
-    let path = "../input.txt";
+    let path = "input.txt";
     match part_one(path) {
         Ok(result) => println!("Part One Result: {}", result),
         Err(e) => eprintln!("Error: {}", e),
